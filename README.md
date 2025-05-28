@@ -41,6 +41,6 @@ source venv/bin/activate  # atau .\\venv\\Scripts\\activate di Windows
 # Install dependencies
 pip install -r requirements.txt
 ```
-📷 Contoh Hasil Deteksi
-*
-*
+## 📷 Contoh Hasil Deteksi
+-
+-
