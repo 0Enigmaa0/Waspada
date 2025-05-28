@@ -29,7 +29,7 @@ Proyek ini bertujuan untuk membantu pengelolaan sampah di sektor pariwisata Indo
 
 ```bash
 # Clone repo
-git clone https://github.com/0Enigmaa/Waspada.git
+git clone https://github.com/0Enigmaa0/Waspada.git
 cd Waspada
 ```
 ```bash
