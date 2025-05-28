@@ -31,23 +31,13 @@ Proyek ini bertujuan untuk membantu pengelolaan sampah di sektor pariwisata Indo
 # Clone repo
 git clone https://github.com/username/waste-management-indonesia.git
 cd waste-management-indonesia
-
+```
+```bash
 # (Opsional) Buat virtual environment
 python -m venv venv
 source venv/bin/activate  # atau .\\venv\\Scripts\\activate di Windows
-
+```
+```bash
 # Install dependencies
 pip install -r requirements.txt
 ```
-##🖼️ Struktur Folder
-waste-management-indonesia/
-├── dataset/
-├── models/
-├── src/
-│   ├── detect.py
-│   ├── segment.py
-│   └── notify.py
-├── dashboard/
-│   └── app.py
-├── requirements.txt
-└── README.md
