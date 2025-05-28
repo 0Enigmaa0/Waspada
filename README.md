@@ -29,8 +29,8 @@ Proyek ini bertujuan untuk membantu pengelolaan sampah di sektor pariwisata Indo
 
 ```bash
 # Clone repo
-git clone https://github.com/username/waste-management-indonesia.git
-cd waste-management-indonesia
+git clone https://github.com/0Enigmaa/Waspada.git
+cd Waspada
 ```
 ```bash
 # (Opsional) Buat virtual environment
