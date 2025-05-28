@@ -41,7 +41,7 @@ pip install -r requirements.txt
 -
 -
 
-##✍️ Kontributor
+## ✍️ Kontributor
 - Fijar Rizky Maulana – 152023048
 
 - Nicky Aditya Bagus - 152023065
