@@ -1,0 +1,52 @@
+1 Fitur Utama Aplikasi
+Aplikasi ini dirancang untuk memiliki fitur-fitur sebagai berikut:
+Pendeteksi Sampah Otomatis: Menggunakan kamera CCTV atau drone untuk memindai area wisata dan mendeteksi keberadaan sampah berdasarkan warna, bentuk, dan tekstur.
+
+
+Segmentasi Sampah: Menggunakan teknik pemrosesan citra seperti thresholding, HSV segmentation, dan object detection untuk memisahkan objek sampah dari latar belakang.
+
+
+Dashboard Monitoring: Menampilkan peta lokasi, snapshot, dan status area (bersih atau perlu dibersihkan) dalam bentuk visual yang mudah dipahami.
+
+
+Notifikasi Otomatis: Sistem akan mengirimkan notifikasi ke petugas kebersihan jika area sudah melebihi ambang batas sampah.
+
+
+Log Data dan Analisis: Setiap deteksi akan dicatat untuk dianalisis tren kebersihan per hari atau per minggu.
+
+
+2 Teknologi dan Tools
+Teknologi yang digunakan meliputi:
+Bahasa pemrograman Python
+
+
+Library OpenCV untuk pemrosesan citra
+
+
+Model deteksi menggunakan TensorFlow atau YOLOv5
+
+
+Dashboard interaktif menggunakan Streamlit atau Flask
+
+
+Perangkat keras seperti webcam, CCTV, atau drone
+
+
+3 Langkah Teknis Implementasi
+Proses implementasi dibagi menjadi beberapa tahap:
+Pengumpulan dataset gambar/video area wisata
+
+
+Preprocessing citra (resize, grayscale, filter)
+
+
+Ekstraksi ciri (warna, bentuk, tekstur)
+
+
+Deteksi objek sampah (thresholding, contour, CNN)
+
+
+Simpan hasil deteksi ke database
+
+
+Bangun dashboard interaktif dan sistem pelaporan otomatis
