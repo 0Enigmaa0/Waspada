@@ -1,4 +1,4 @@
-# 🧠 Waste Management Indonesia - Smart Trash Detection System
+# 🧠 Waspada - (Waste Surveillance and Detection App)
 
 Aplikasi berbasis citra digital untuk mendeteksi dan memantau keberadaan sampah di kawasan wisata secara otomatis menggunakan teknologi pemrosesan citra dan machine learning.
 
@@ -41,3 +41,6 @@ source venv/bin/activate  # atau .\\venv\\Scripts\\activate di Windows
 # Install dependencies
 pip install -r requirements.txt
 ```
+📷 Contoh Hasil Deteksi
+*
+*
