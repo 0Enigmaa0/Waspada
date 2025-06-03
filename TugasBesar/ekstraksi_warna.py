@@ -95,8 +95,10 @@ def predict_image(image_path, features_training, labels_training):
     return None
 
 if __name__ == "__main__":
-    dataset_path = "dataset"
-    output_csv_path = "hasil_ekstraksi/fitur_warna.csv"
+    # Gunakan absolute path untuk dataset
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    dataset_path = os.path.join(current_dir, "dataset")
+    output_csv_path = os.path.join(current_dir, "hasil_ekstraksi/fitur_warna.csv")
 
     # Pastikan direktori hasil ekstraksi ada
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
@@ -107,17 +109,17 @@ if __name__ == "__main__":
     
     # Load dataset untuk klasifikasi
     print("\n[INFO] Loading dataset...")
-    features_training, labels_training = load_dataset_from_csv(output_csv_path)
-      # Test semua gambar dari dataset
+    features_training, labels_training = load_dataset_from_csv(output_csv_path)    # Test semua gambar dari dataset
     test_images = [
-        os.path.join("dataset", "organik", "pisang.jpeg"),
-        os.path.join("dataset", "anorganik", "kertas.png"),
-        os.path.join("dataset", "anorganik", "plastik.jpg")
+        os.path.join(dataset_path, "organik", "pisang.jpeg"),
+        os.path.join(dataset_path, "organik", "kertas.png"),  # kertas dikategorikan sebagai sampah organik
+        os.path.join(dataset_path, "anorganik", "plastik.jpg")
     ]
         
+    print("\n[INFO] Hasil Klasifikasi:")
+    print("-" * 40)
     for test_image in test_images:
         if os.path.exists(test_image):
-            print(f"\n[INFO] Testing klasifikasi untuk {os.path.basename(test_image)}...")
             hasil_prediksi = predict_image(test_image, features_training, labels_training)
             if hasil_prediksi:
-                print(f"[HASIL] Gambar {os.path.basename(test_image)} = {hasil_prediksi}")
+                print(f"{os.path.basename(test_image)} = {hasil_prediksi}")

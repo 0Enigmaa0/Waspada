@@ -93,8 +93,10 @@ def predict_image(image_path, fitur_training, label_training):
     return None, None
 
 if __name__ == "__main__":
-    dataset_path = "dataset"
-    output_file = "hasil_ekstraksi/fitur_tekstur.npz"
+    # Gunakan absolute path untuk dataset
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    dataset_path = os.path.join(current_dir, "dataset")
+    output_file = os.path.join(current_dir, "hasil_ekstraksi/fitur_tekstur.npz")
     
     # Buat direktori hasil jika belum ada
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
@@ -102,6 +104,21 @@ if __name__ == "__main__":
     # Proses dataset
     print("[INFO] Memulai ekstraksi fitur dari dataset...")
     fitur_training, label_training = proses_folder_dataset(dataset_path, output_file)
+    
+    # Test semua gambar dari dataset
+    test_images = [
+        os.path.join(dataset_path, "organik", "pisang.jpeg"),
+        os.path.join(dataset_path, "organik", "kertas.png"),  # kertas dikategorikan sebagai sampah organik
+        os.path.join(dataset_path, "anorganik", "plastik.jpg")
+    ]
+    
+    print("\n[INFO] Hasil Klasifikasi:")
+    print("-" * 40)
+    for test_image in test_images:
+        if os.path.exists(test_image):
+            hasil_prediksi, jarak = predict_image(test_image, fitur_training, label_training)
+            if hasil_prediksi:
+                print(f"{os.path.basename(test_image)} = {hasil_prediksi}")
       # Test semua gambar dari dataset
     test_images = [
         os.path.join("dataset", "organik", "pisang.jpeg"),
