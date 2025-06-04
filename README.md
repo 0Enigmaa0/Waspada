@@ -4,11 +4,10 @@ Aplikasi berbasis citra digital untuk mendeteksi dan memantau keberadaan sampah 
 
 ## 📌 Deskripsi
 
-Proyek ini bertujuan untuk membantu pengelolaan sampah di sektor pariwisata Indonesia melalui deteksi visual menggunakan kamera (CCTV/drone) dan klasifikasi area kotor/bersih secara real-time. Sistem ini juga dilengkapi dashboard monitoring dan notifikasi otomatis ke petugas kebersihan.
+Proyek ini bertujuan untuk membantu pengelolaan sampah di sektor pariwisata Indonesia melalui deteksi visual menggunakan kamera eksternal (webcam) /laptop dan klasifikasi area kotor/bersih secara real-time. Sistem ini juga dilengkapi dashboard monitoring.
 
 ## 🎯 Fitur Utama
 - 🔍 Deteksi dan segmentasi area sampah dari citra/video
-- 🧼 Penanda otomatis area kotor (contour/warna)
 - 📊 Dashboard atau visualisasi sederhana berbasis image overlay
 - 📈 Logging dan analisis estimasi banyaknya area sampah
 
@@ -17,7 +16,7 @@ Proyek ini bertujuan untuk membantu pengelolaan sampah di sektor pariwisata Indo
 | Komponen           | Teknologi                        |
 |--------------------|----------------------------------|
 | Bahasa             | Python                           |
-| Pengolahan Citra   | OpenCV, scikit-image, Pillow, mahotas |
+| Pengolahan Citra   | OpenCV, scikit-image, mahotas |
 | Numerik            | NumPy                            |
 | Machine Learning   | scikit-learn (klasifikasi sederhana) |
 
