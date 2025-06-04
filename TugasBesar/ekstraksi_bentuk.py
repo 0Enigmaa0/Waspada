@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import csv
+from klasifikasi_model import klasifikasi_knn, klasifikasi_svm, prediksi_single_image
 
 def ekstraksi_fitur_bentuk(image_path):
     image = cv2.imread(image_path)
@@ -42,21 +43,6 @@ def proses_folder_dataset_bentuk(folder_dataset, output_csv):
             writer.writerow(np.append(fitur, label))
     print(f"[INFO] Ekstraksi selesai. Disimpan ke: {output_csv}")
 
-def hitung_jarak(fitur1, fitur2):
-    return np.sqrt(np.sum((np.array(fitur1) - np.array(fitur2)) ** 2))
-
-def knn_predict(fitur_test, fitur_training, label_training, k=3):
-    jarak = []
-    for fitur_train, label in zip(fitur_training, label_training):
-        d = hitung_jarak(fitur_test, fitur_train)
-        jarak.append((d, label))
-    jarak.sort(key=lambda x: x[0])
-    k_terdekat = jarak[:k]
-    label_count = {}
-    for _, label in k_terdekat:
-        label_count[label] = label_count.get(label, 0) + 1
-    return max(label_count, key=label_count.get)
-
 def load_dataset_from_csv(csv_path):
     features = []
     labels = []
@@ -67,13 +53,6 @@ def load_dataset_from_csv(csv_path):
             labels.append(row[-1])
     return np.array(features), np.array(labels)
 
-def predict_image(image_path, features_training, labels_training, k=3):
-    fitur = ekstraksi_fitur_bentuk(image_path)
-    if fitur is not None:
-        label_prediksi = knn_predict(fitur, features_training, labels_training, k)
-        return label_prediksi
-    return None
-
 if __name__ == "__main__":
     base_dir = os.path.dirname(os.path.abspath(__file__))
     dataset_path = os.path.join(base_dir, "dataset")
@@ -81,16 +60,32 @@ if __name__ == "__main__":
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
     print("[INFO] Memulai ekstraksi fitur bentuk dari dataset...")
     proses_folder_dataset_bentuk(dataset_path, output_csv_path)
+
     print("\n[INFO] Loading dataset...")
     features_training, labels_training = load_dataset_from_csv(output_csv_path)
-    test_images = [
-        os.path.join(dataset_path, "organik", "pisang.jpeg"),
-        os.path.join(dataset_path, "anorganik", "plastik.jpg"),
-        os.path.join(dataset_path, "organik", "kertas.png")
-    ]
-    for test_image in test_images:
-        if os.path.exists(test_image):
-            print(f"\n[INFO] Testing klasifikasi untuk {os.path.basename(test_image)}...")
-            hasil_prediksi = predict_image(test_image, features_training, labels_training, k=3)
-            if hasil_prediksi:
-                print(f"[HASIL] Gambar {os.path.basename(test_image)} = {hasil_prediksi}")
+
+    print("\n[INFO] Training KNN dan SVM...")
+    model_knn = klasifikasi_knn(features_training, labels_training, k=3)
+    model_svm = klasifikasi_svm(features_training, labels_training, kernel='linear')
+
+    # Membaca semua gambar dari folder dataset
+    print("\n[INFO] Mendeteksi seluruh dataset...")
+    print("-" * 50)
+    
+    for label in ["organik", "anorganik"]:
+        folder_path = os.path.join(dataset_path, label)
+        print(f"\n[INFO] Memproses folder {label}...")
+        print("-" * 40)
+        
+        if os.path.exists(folder_path):
+            for image_name in os.listdir(folder_path):
+                image_path = os.path.join(folder_path, image_name)
+                fitur = ekstraksi_fitur_bentuk(image_path)
+                if fitur is not None:
+                    hasil_prediksi_knn = prediksi_single_image(model_knn, fitur)
+                    hasil_prediksi_svm = prediksi_single_image(model_svm, fitur)
+                    print(f"Gambar: {image_name}")
+                    print(f"[KNN] Prediksi = {hasil_prediksi_knn}")
+                    print(f"[SVM] Prediksi = {hasil_prediksi_svm}")
+                    print(f"Label sebenarnya = {label}")
+                    print("-" * 40)
