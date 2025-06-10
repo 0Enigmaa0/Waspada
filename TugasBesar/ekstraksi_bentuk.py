@@ -4,13 +4,19 @@ import os
 import csv
 from klasifikasi_model import klasifikasi_knn, klasifikasi_svm, prediksi_single_image
 
-def ekstraksi_fitur_bentuk(image_path):
+def ekstraksi_fitur_bentuk(image_path, show_conversion=False):
     image = cv2.imread(image_path)
     if image is None:
         print(f"Error: tidak dapat membaca {image_path}")
         return None
     abu = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     _, biner = cv2.threshold(abu, 127, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    if show_conversion:
+        cv2.imshow('Citra Asli', image)
+        cv2.imshow('Citra Grayscale', abu)
+        cv2.imshow('Citra Biner', biner)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
     kontur, _ = cv2.findContours(biner, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for cnt in kontur:
         luas = cv2.contourArea(cnt)
@@ -89,3 +95,16 @@ if __name__ == "__main__":
                     print(f"[SVM] Prediksi = {hasil_prediksi_svm}")
                     print(f"Label sebenarnya = {label}")
                     print("-" * 40)
+    # Tampilkan hasil konversi untuk satu gambar saja
+    contoh_gambar = None
+    for label in ["organik", "anorganik"]:
+        folder_path = os.path.join(dataset_path, label)
+        if os.path.exists(folder_path):
+            for image_name in os.listdir(folder_path):
+                contoh_gambar = os.path.join(folder_path, image_name)
+                break
+        if contoh_gambar:
+            break
+    if contoh_gambar:
+        print(f"\n[INFO] Menampilkan hasil konversi citra untuk: {os.path.basename(contoh_gambar)}")
+        ekstraksi_fitur_bentuk(contoh_gambar, show_conversion=True)

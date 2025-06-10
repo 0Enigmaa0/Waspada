@@ -4,13 +4,18 @@ import os
 import csv
 from klasifikasi_model import klasifikasi_knn, klasifikasi_svm, prediksi_single_image
 
-def ekstraksi_fitur_warna(image_path):
+def ekstraksi_fitur_warna(image_path, show_conversion=False):
     image = cv2.imread(image_path)
     if image is None:
         print(f"Error: tidak dapat membaca {image_path}")
         return None
     image = cv2.resize(image, (200, 200))
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    if show_conversion:
+        cv2.imshow('Citra Asli', image)
+        cv2.imshow('Citra HSV', hsv)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
     hist = cv2.calcHist([hsv], [0, 1, 2], None, [8, 8, 8],
                         [0, 180, 0, 256, 0, 256])
     hist = cv2.normalize(hist, hist).flatten()
@@ -82,3 +87,16 @@ if __name__ == "__main__":
                     print(f"[SVM] Prediksi = {hasil_prediksi_svm}")
                     print(f"Label sebenarnya = {label}")
                     print("-" * 40)
+    # Tampilkan hasil konversi untuk satu gambar saja
+    contoh_gambar = None
+    for label in ["organik", "anorganik"]:
+        folder_path = os.path.join(dataset_path, label)
+        if os.path.exists(folder_path):
+            for image_name in os.listdir(folder_path):
+                contoh_gambar = os.path.join(folder_path, image_name)
+                break
+        if contoh_gambar:
+            break
+    if contoh_gambar:
+        print(f"\n[INFO] Menampilkan hasil konversi citra untuk: {os.path.basename(contoh_gambar)}")
+        ekstraksi_fitur_warna(contoh_gambar, show_conversion=True)
