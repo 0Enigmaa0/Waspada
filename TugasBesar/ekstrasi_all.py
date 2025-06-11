@@ -57,6 +57,78 @@ def ekstraksi_fitur_warna(image_path):
     fitur = np.hstack((hist, mean_rgb))
     return fitur
 
+# --- Visualisasi Ekstraksi ---
+def visualisasi_ekstraksi(img_path):
+    img = cv2.imread(img_path)
+    if img is None:
+        return
+    
+    # 1. Visualisasi Ekstraksi Bentuk
+    img_bentuk = img.copy()
+    abu = cv2.cvtColor(img_bentuk, cv2.COLOR_BGR2GRAY)
+    _, biner = cv2.threshold(abu, 127, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    kontur, _ = cv2.findContours(biner, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Gambar kontur
+    img_kontur = img.copy()
+    cv2.drawContours(img_kontur, kontur, -1, (0, 255, 0), 2)
+    
+    plt.figure(figsize=(15, 5))
+    plt.subplot(131), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.title('Citra Asli'), plt.axis('off')
+    plt.subplot(132), plt.imshow(abu, cmap='gray')
+    plt.title('Grayscale'), plt.axis('off')
+    plt.subplot(133), plt.imshow(cv2.cvtColor(img_kontur, cv2.COLOR_BGR2RGB))
+    plt.title('Kontur'), plt.axis('off')
+    plt.suptitle('Ekstraksi Bentuk')
+    plt.show()
+
+    # 2. Visualisasi Ekstraksi Tekstur
+    img_resize = cv2.resize(img, (200, 200))
+    gray = cv2.cvtColor(img_resize, cv2.COLOR_BGR2GRAY)
+    distances = [1]
+    angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]
+    glcm = graycomatrix(gray, distances, angles, 256, symmetric=True, normed=True)
+    
+    # Hitung properti GLCM
+    properties = ['contrast', 'dissimilarity', 'homogeneity', 'energy', 'correlation']
+    glcm_props = {}
+    for prop in properties:
+        glcm_props[prop] = graycoprops(glcm, prop)[0, 0]
+    
+    plt.figure(figsize=(15, 5))
+    plt.subplot(131), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.title('Citra Asli'), plt.axis('off')
+    plt.subplot(132), plt.imshow(gray, cmap='gray')
+    plt.title('Grayscale'), plt.axis('off')
+    
+    # Visualisasi matriks GLCM
+    plt.subplot(133), plt.imshow(glcm[:, :, 0, 0], cmap='hot')
+    plt.title('GLCM Matrix')
+    plt.colorbar(orientation='vertical')
+    props_text = '\n'.join([f'{prop}: {val:.2f}' for prop, val in glcm_props.items()])
+    plt.figtext(1.0, 0.5, props_text, fontsize=9, ha='left', va='center')
+    plt.suptitle('Ekstraksi Tekstur')
+    plt.tight_layout()
+    plt.show()
+
+    # 3. Visualisasi Ekstraksi Warna
+    img_resize = cv2.resize(img, (200, 200))
+    hsv = cv2.cvtColor(img_resize, cv2.COLOR_BGR2HSV)
+    
+    plt.figure(figsize=(15, 5))
+    plt.subplot(131), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.title('RGB'), plt.axis('off')
+    
+    # Tampilkan komponen HSV
+    h, s, v = cv2.split(hsv)
+    plt.subplot(132), plt.imshow(h, cmap='hsv')
+    plt.title('Hue Channel'), plt.axis('off')
+    plt.subplot(133), plt.imshow(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
+    plt.title('HSV'), plt.axis('off')
+    plt.suptitle('Ekstraksi Warna')
+    plt.show()
+
 # --- Load Dataset ---
 def load_dataset(folder_dataset, ekstraksi_fitur_func):
     data = []
@@ -72,6 +144,77 @@ def load_dataset(folder_dataset, ekstraksi_fitur_func):
                 data.append(fitur)
                 label_list.append(label)
     return np.array(data), np.array(label_list)
+
+# --- Simpan Visualisasi ---
+def simpan_visualisasi(img_path, output_folder, label, index):
+    img = cv2.imread(img_path)
+    if img is None:
+        return
+    
+    # Buat folder output jika belum ada
+    os.makedirs(output_folder, exist_ok=True)
+    base_name = f"{label}_{index}"
+
+    # 1. Visualisasi dan simpan ekstraksi bentuk
+    img_bentuk = img.copy()
+    abu = cv2.cvtColor(img_bentuk, cv2.COLOR_BGR2GRAY)
+    _, biner = cv2.threshold(abu, 127, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    kontur, _ = cv2.findContours(biner, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    img_kontur = img.copy()
+    cv2.drawContours(img_kontur, kontur, -1, (0, 255, 0), 2)
+    
+    plt.figure(figsize=(15, 5))
+    plt.subplot(131), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.title('Citra Asli'), plt.axis('off')
+    plt.subplot(132), plt.imshow(abu, cmap='gray')
+    plt.title('Grayscale'), plt.axis('off')
+    plt.subplot(133), plt.imshow(cv2.cvtColor(img_kontur, cv2.COLOR_BGR2RGB))
+    plt.title('Kontur'), plt.axis('off')
+    plt.suptitle(f'Ekstraksi Bentuk - {base_name}')
+    plt.savefig(os.path.join(output_folder, f'{base_name}_bentuk.png'))
+    plt.close()
+
+    # 2. Visualisasi dan simpan ekstraksi tekstur
+    img_resize = cv2.resize(img, (200, 200))
+    gray = cv2.cvtColor(img_resize, cv2.COLOR_BGR2GRAY)
+    distances = [1]
+    angles = [0, np.pi/4, np.pi/2, 3*np.pi/4]
+    glcm = graycomatrix(gray, distances, angles, 256, symmetric=True, normed=True)
+    
+    properties = ['contrast', 'dissimilarity', 'homogeneity', 'energy', 'correlation']
+    glcm_props = {}
+    for prop in properties:
+        glcm_props[prop] = graycoprops(glcm, prop)[0, 0]
+    
+    plt.figure(figsize=(15, 5))
+    plt.subplot(131), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.title('Citra Asli'), plt.axis('off')
+    plt.subplot(132), plt.imshow(gray, cmap='gray')
+    plt.title('Grayscale'), plt.axis('off')
+    plt.subplot(133), plt.imshow(glcm[:, :, 0, 0], cmap='hot')
+    plt.title('GLCM Matrix')
+    plt.colorbar(orientation='vertical')
+    props_text = '\n'.join([f'{prop}: {val:.2f}' for prop, val in glcm_props.items()])
+    plt.figtext(1.0, 0.5, props_text, fontsize=9, ha='left', va='center')
+    plt.suptitle(f'Ekstraksi Tekstur - {base_name}')
+    plt.savefig(os.path.join(output_folder, f'{base_name}_tekstur.png'))
+    plt.close()
+
+    # 3. Visualisasi dan simpan ekstraksi warna
+    img_resize = cv2.resize(img, (200, 200))
+    hsv = cv2.cvtColor(img_resize, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    
+    plt.figure(figsize=(15, 5))
+    plt.subplot(131), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.title('RGB'), plt.axis('off')
+    plt.subplot(132), plt.imshow(h, cmap='hsv')
+    plt.title('Hue Channel'), plt.axis('off')
+    plt.subplot(133), plt.imshow(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
+    plt.title('HSV'), plt.axis('off')
+    plt.suptitle(f'Ekstraksi Warna - {base_name}')
+    plt.savefig(os.path.join(output_folder, f'{base_name}_warna.png'))
+    plt.close()
 
 # --- Main ---
 if __name__ == "__main__":
@@ -109,13 +252,16 @@ if __name__ == "__main__":
         ("Tekstur", y_tekstur, y_pred_knn_tekstur, y_pred_svm_tekstur),
         ("Warna", y_warna, y_pred_knn_warna, y_pred_svm_warna)
     ]
+    
     for nama, y_true, y_pred_knn, y_pred_svm in ekstraksi_list:
         print(f"\n=== {nama.upper()} ===")
         print("[KNN] Classification Report:")
         print(classification_report(y_true, y_pred_knn))
         print("[SVM] Classification Report:")
         print(classification_report(y_true, y_pred_svm))
-        fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+        
+        # Plot confusion matrix
+        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
         ConfusionMatrixDisplay(confusion_matrix(y_true, y_pred_knn), display_labels=labels).plot(ax=ax[0], colorbar=False)
         ax[0].set_title(f"{nama} - KNN")
         ConfusionMatrixDisplay(confusion_matrix(y_true, y_pred_svm), display_labels=labels).plot(ax=ax[1], colorbar=False)
@@ -123,73 +269,67 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.show()
 
-    # --- Ambil 3 Gambar untuk Visualisasi ---
-    contoh_gambar = []
-    # 1 organik
+    # --- Visualisasi Sample Images ---
+    print("\n[INFO] Menampilkan visualisasi ekstraksi fitur...")
+    sample_images = []
+    
+    # Ambil 1 sampel organik
     folder_organik = os.path.join(dataset_path, "organik")
     for img in os.listdir(folder_organik):
-        contoh_gambar.append((os.path.join(folder_organik, img), "organik"))
+        sample_images.append((os.path.join(folder_organik, img), "organik"))
         break
-    # 2 anorganik
+
+    # Ambil 1 sampel anorganik
     folder_anorganik = os.path.join(dataset_path, "anorganik")
-    count = 0
     for img in os.listdir(folder_anorganik):
-        contoh_gambar.append((os.path.join(folder_anorganik, img), "anorganik"))
-        count += 1
-        if count == 2:
-            break
-    # Tabel hasil akhir
-    print("\nTabel Hasil Klasifikasi (KNN & SVM) untuk 3 Gambar Contoh:")
+        sample_images.append((os.path.join(folder_anorganik, img), "anorganik"))
+        break
+
+    # Visualisasi untuk setiap sampel
+    for img_path, label in sample_images:
+        print(f"\nVisualisasi untuk {os.path.basename(img_path)} ({label})")
+        visualisasi_ekstraksi(img_path)
+
+    # Hasil klasifikasi untuk sampel
+    print("\nHasil Klasifikasi untuk Sample Images:")
     print("| Gambar | Label | Bentuk-KNN | Bentuk-SVM | Tekstur-KNN | Tekstur-SVM | Warna-KNN | Warna-SVM |")
-    print("|--------|-------|------------|------------|-------------|-------------|-----------|-----------|")
-    for img_path, label in contoh_gambar:
+    print("|---------|--------|------------|------------|--------------|--------------|-----------|-----------|")
+    
+    for img_path, label in sample_images:
         fitur_bentuk = ekstraksi_fitur_bentuk(img_path)
         fitur_tekstur = ekstraksi_fitur_tekstur(img_path)
         fitur_warna = ekstraksi_fitur_warna(img_path)
+        
         pred_bentuk_knn = model_knn_bentuk.predict([fitur_bentuk])[0] if fitur_bentuk is not None else "-"
         pred_bentuk_svm = model_svm_bentuk.predict([fitur_bentuk])[0] if fitur_bentuk is not None else "-"
         pred_tekstur_knn = model_knn_tekstur.predict([fitur_tekstur])[0] if fitur_tekstur is not None else "-"
         pred_tekstur_svm = model_svm_tekstur.predict([fitur_tekstur])[0] if fitur_tekstur is not None else "-"
         pred_warna_knn = model_knn_warna.predict([fitur_warna])[0] if fitur_warna is not None else "-"
         pred_warna_svm = model_svm_warna.predict([fitur_warna])[0] if fitur_warna is not None else "-"
+        
         print(f"| {os.path.basename(img_path)} | {label} | {pred_bentuk_knn} | {pred_bentuk_svm} | {pred_tekstur_knn} | {pred_tekstur_svm} | {pred_warna_knn} | {pred_warna_svm} |")
-        # Visualisasi hasil ekstraksi
-        img = cv2.imread(img_path)
-        if img is not None:
-            # Bentuk: tampilkan citra asli, grayscale, biner
-            abu = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            _, biner = cv2.threshold(abu, 127, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            cv2.imshow(f"Bentuk - Asli: {os.path.basename(img_path)}", img)
-            cv2.imshow(f"Bentuk - Grayscale: {os.path.basename(img_path)}", abu)
-            cv2.imshow(f"Bentuk - Biner: {os.path.basename(img_path)}", biner)
-            # Tekstur: tampilkan grayscale dan biner
-            _, biner_tekstur = cv2.threshold(abu, 127, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            cv2.imshow(f"Tekstur - Grayscale: {os.path.basename(img_path)}", abu)
-            cv2.imshow(f"Tekstur - Biner: {os.path.basename(img_path)}", biner_tekstur)
-            # Warna: tampilkan asli dan HSV
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            hsv_vis = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR) # untuk visualisasi
-            cv2.imshow(f"Warna - Asli: {os.path.basename(img_path)}", img)
-            cv2.imshow(f"Warna - HSV: {os.path.basename(img_path)}", hsv_vis)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
 
-    # Tabel hasil akhir untuk seluruh dataset
-    print("\nTabel Hasil Klasifikasi (KNN & SVM) untuk Seluruh Dataset:")
-    print("| Gambar | Label | Bentuk-KNN | Bentuk-SVM | Tekstur-KNN | Tekstur-SVM | Warna-KNN | Warna-SVM |")
-    print("|--------|-------|------------|------------|-------------|-------------|-----------|-----------|")
-    for label in labels:
-        folder_path = os.path.join(dataset_path, label)
-        if os.path.exists(folder_path):
-            for image_name in os.listdir(folder_path):
-                img_path = os.path.join(folder_path, image_name)
-                fitur_bentuk = ekstraksi_fitur_bentuk(img_path)
-                fitur_tekstur = ekstraksi_fitur_tekstur(img_path)
-                fitur_warna = ekstraksi_fitur_warna(img_path)
-                pred_bentuk_knn = model_knn_bentuk.predict([fitur_bentuk])[0] if fitur_bentuk is not None else "-"
-                pred_bentuk_svm = model_svm_bentuk.predict([fitur_bentuk])[0] if fitur_bentuk is not None else "-"
-                pred_tekstur_knn = model_knn_tekstur.predict([fitur_tekstur])[0] if fitur_tekstur is not None else "-"
-                pred_tekstur_svm = model_svm_tekstur.predict([fitur_tekstur])[0] if fitur_tekstur is not None else "-"
-                pred_warna_knn = model_knn_warna.predict([fitur_warna])[0] if fitur_warna is not None else "-"
-                pred_warna_svm = model_svm_warna.predict([fitur_warna])[0] if fitur_warna is not None else "-"
-                print(f"| {image_name} | {label} | {pred_bentuk_knn} | {pred_bentuk_svm} | {pred_tekstur_knn} | {pred_tekstur_svm} | {pred_warna_knn} | {pred_warna_svm} |")
+    # Simpan hasil visualisasi untuk sampel terpilih
+    print("\n[INFO] Menyimpan hasil visualisasi...")
+    output_folder = os.path.join(base_dir, "dataset", "hasil")
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Ambil 10 sampel untuk setiap kategori
+    metal_files = [f for f in os.listdir(os.path.join(dataset_path, "anorganik")) if f.startswith("metal")][:10]
+    plastic_files = [f for f in os.listdir(os.path.join(dataset_path, "anorganik")) if f.startswith("plastic")][:10]
+    organic_files = [f for f in os.listdir(os.path.join(dataset_path, "organik"))][:10]
+
+    # Proses dan simpan visualisasi
+    for i, file in enumerate(metal_files):
+        img_path = os.path.join(dataset_path, "anorganik", file)
+        simpan_visualisasi(img_path, output_folder, "metal", i+1)
+
+    for i, file in enumerate(plastic_files):
+        img_path = os.path.join(dataset_path, "anorganik", file)
+        simpan_visualisasi(img_path, output_folder, "plastic", i+1)
+
+    for i, file in enumerate(organic_files):
+        img_path = os.path.join(dataset_path, "organik", file)
+        simpan_visualisasi(img_path, output_folder, "biological", i+1)
+
+    print("[INFO] Visualisasi berhasil disimpan di folder:", output_folder)
