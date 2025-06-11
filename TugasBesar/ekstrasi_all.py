@@ -262,9 +262,14 @@ if __name__ == "__main__":
         
         # Plot confusion matrix
         fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-        ConfusionMatrixDisplay(confusion_matrix(y_true, y_pred_knn), display_labels=labels).plot(ax=ax[0], colorbar=False)
+        cm_knn = confusion_matrix(y_true, y_pred_knn)
+        cm_svm = confusion_matrix(y_true, y_pred_svm)
+        # Fix: set display_labels to match the number of classes in cm
+        unique_labels = np.unique(np.concatenate([y_true, y_pred_knn, y_pred_svm]))
+        display_labels = [str(l) for l in unique_labels]
+        ConfusionMatrixDisplay(cm_knn, display_labels=display_labels).plot(ax=ax[0], colorbar=False)
         ax[0].set_title(f"{nama} - KNN")
-        ConfusionMatrixDisplay(confusion_matrix(y_true, y_pred_svm), display_labels=labels).plot(ax=ax[1], colorbar=False)
+        ConfusionMatrixDisplay(cm_svm, display_labels=display_labels).plot(ax=ax[1], colorbar=False)
         ax[1].set_title(f"{nama} - SVM")
         plt.tight_layout()
         plt.show()
