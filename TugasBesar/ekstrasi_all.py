@@ -133,16 +133,26 @@ def visualisasi_ekstraksi(img_path):
 def load_dataset(folder_dataset, ekstraksi_fitur_func):
     data = []
     label_list = []
+    valid_labels = ['organik', 'anorganik']
+    
     for label in os.listdir(folder_dataset):
+        # Skip non-directory items and the 'hasil' folder
         folder_label = os.path.join(folder_dataset, label)
-        if not os.path.isdir(folder_label):
+        if not os.path.isdir(folder_label) or label == 'hasil' or label not in valid_labels:
             continue
+            
+        print(f"[INFO] Processing {label} folder...")
         for file in os.listdir(folder_label):
             path_file = os.path.join(folder_label, file)
             fitur = ekstraksi_fitur_func(path_file)
             if fitur is not None:
                 data.append(fitur)
-                label_list.append(label)
+                # Convert both metal and plastic to anorganik
+                if file.startswith(('metal', 'plastic')):
+                    label_list.append('anorganik')
+                else:
+                    label_list.append(label)
+    
     return np.array(data), np.array(label_list)
 
 # --- Simpan Visualisasi ---
@@ -244,9 +254,7 @@ if __name__ == "__main__":
     model_knn_warna = klasifikasi_knn(X_warna, y_warna, k=3)
     model_svm_warna = klasifikasi_svm(X_warna, y_warna, kernel='linear')
     y_pred_knn_warna = model_knn_warna.predict(X_warna)
-    y_pred_svm_warna = model_svm_warna.predict(X_warna)
-
-    # --- Classification Report & Confusion Matrix ---
+    y_pred_svm_warna = model_svm_warna.predict(X_warna)    # --- Classification Report & Confusion Matrix ---
     ekstraksi_list = [
         ("Bentuk", y_bentuk, y_pred_knn_bentuk, y_pred_svm_bentuk),
         ("Tekstur", y_tekstur, y_pred_knn_tekstur, y_pred_svm_tekstur),
@@ -255,22 +263,49 @@ if __name__ == "__main__":
     
     for nama, y_true, y_pred_knn, y_pred_svm in ekstraksi_list:
         print(f"\n=== {nama.upper()} ===")
+        
+        # Ensure we're using the correct labels
+        unique_labels = np.unique(y_true)
+        target_names = ['organik', 'anorganik']
+        
         print("[KNN] Classification Report:")
-        print(classification_report(y_true, y_pred_knn))
+        print(classification_report(y_true, y_pred_knn, 
+                                 target_names=target_names,
+                                 labels=['organik', 'anorganik']))
         print("[SVM] Classification Report:")
-        print(classification_report(y_true, y_pred_svm))
+        print(classification_report(y_true, y_pred_svm, 
+                                 target_names=target_names,
+                                 labels=['organik', 'anorganik']))
         
         # Plot confusion matrix
-        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-        cm_knn = confusion_matrix(y_true, y_pred_knn)
-        cm_svm = confusion_matrix(y_true, y_pred_svm)
-        # Fix: set display_labels to match the number of classes in cm
-        unique_labels = np.unique(np.concatenate([y_true, y_pred_knn, y_pred_svm]))
-        display_labels = [str(l) for l in unique_labels]
-        ConfusionMatrixDisplay(cm_knn, display_labels=display_labels).plot(ax=ax[0], colorbar=False)
-        ax[0].set_title(f"{nama} - KNN")
-        ConfusionMatrixDisplay(cm_svm, display_labels=display_labels).plot(ax=ax[1], colorbar=False)
-        ax[1].set_title(f"{nama} - SVM")
+        fig, ax = plt.subplots(1, 2, figsize=(15, 6))
+        cm_knn = confusion_matrix(y_true, y_pred_knn, labels=['organik', 'anorganik'])
+        cm_svm = confusion_matrix(y_true, y_pred_svm, labels=['organik', 'anorganik'])
+        
+        # Tetapkan label kelas secara eksplisit
+        class_labels = ['organik', 'anorganik']
+        
+        # Plot KNN confusion matrix
+        display_knn = ConfusionMatrixDisplay(confusion_matrix=cm_knn, display_labels=class_labels)
+        display_knn.plot(ax=ax[0], values_format='.0f', colorbar=True)
+        ax[0].set_title(f"{nama} - KNN Confusion Matrix")
+        ax[0].set_xlabel('Predicted Label')
+        ax[0].set_ylabel('True Label')
+        
+        # Plot SVM confusion matrix
+        display_svm = ConfusionMatrixDisplay(confusion_matrix=cm_svm, display_labels=class_labels)
+        display_svm.plot(ax=ax[1], values_format='.0f', colorbar=True)
+        ax[1].set_title(f"{nama} - SVM Confusion Matrix")
+        ax[1].set_xlabel('Predicted Label')
+        ax[1].set_ylabel('True Label')
+        
+        # Add overall accuracy as a subtitle
+        acc_knn = (cm_knn[0,0] + cm_knn[1,1]) / cm_knn.sum() * 100
+        acc_svm = (cm_svm[0,0] + cm_svm[1,1]) / cm_svm.sum() * 100
+        plt.figtext(0.25, -0.05, f'KNN Accuracy: {acc_knn:.1f}%', ha='center')
+        plt.figtext(0.75, -0.05, f'SVM Accuracy: {acc_svm:.1f}%', ha='center')
+        
+        plt.suptitle(f'Confusion Matrices for {nama} Features', y=1.05, fontsize=14)
         plt.tight_layout()
         plt.show()
 
@@ -317,24 +352,17 @@ if __name__ == "__main__":
     # Simpan hasil visualisasi untuk sampel terpilih
     print("\n[INFO] Menyimpan hasil visualisasi...")
     output_folder = os.path.join(base_dir, "dataset", "hasil")
-    os.makedirs(output_folder, exist_ok=True)
-
-    # Ambil 10 sampel untuk setiap kategori
-    metal_files = [f for f in os.listdir(os.path.join(dataset_path, "anorganik")) if f.startswith("metal")][:10]
-    plastic_files = [f for f in os.listdir(os.path.join(dataset_path, "anorganik")) if f.startswith("plastic")][:10]
-    organic_files = [f for f in os.listdir(os.path.join(dataset_path, "organik"))][:10]
+    os.makedirs(output_folder, exist_ok=True)    # Ambil 10 sampel untuk setiap kategori
+    anorganik_files = [f for f in os.listdir(os.path.join(dataset_path, "anorganik"))][:10]
+    organik_files = [f for f in os.listdir(os.path.join(dataset_path, "organik"))][:10]
 
     # Proses dan simpan visualisasi
-    for i, file in enumerate(metal_files):
+    for i, file in enumerate(anorganik_files):
         img_path = os.path.join(dataset_path, "anorganik", file)
-        simpan_visualisasi(img_path, output_folder, "metal", i+1)
+        simpan_visualisasi(img_path, output_folder, "anorganik", i+1)
 
-    for i, file in enumerate(plastic_files):
-        img_path = os.path.join(dataset_path, "anorganik", file)
-        simpan_visualisasi(img_path, output_folder, "plastic", i+1)
-
-    for i, file in enumerate(organic_files):
+    for i, file in enumerate(organik_files):
         img_path = os.path.join(dataset_path, "organik", file)
-        simpan_visualisasi(img_path, output_folder, "biological", i+1)
+        simpan_visualisasi(img_path, output_folder, "organik", i+1)
 
     print("[INFO] Visualisasi berhasil disimpan di folder:", output_folder)
